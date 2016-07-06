@@ -52,15 +52,10 @@ P6 = Point(lb.xs3[1], lb.ys3[1], 1.0 )
 P7 = Point(lb.xs4[0], lb.ys4[0], 1.0 )
 P8 = Point(lb.xs4[1], lb.ys4[1], 1.0 )
 
-print("P1 = " + str(P1))
-print("P2 = " + str(P2))
-
 reta1 = P1.cross(P2)
 reta2 = P3.cross(P4)
 reta3 = P5.cross(P6)
 reta4 = P7.cross(P8)
-
-print("reta P1-P2: " + str(reta1))
 
 '''##### Produto vetorial para obter os Pontos de Fuga ######################'''
 PF1 = reta1.cross(reta2)
@@ -72,12 +67,6 @@ reta1.normalize()
 PF1.normalize()
 PF2.normalize()
 horizonte.normalize()
-
-print("reta1 = ", reta1)
-print("PF1 = ", PF1)
-print("PF2 = ", PF2)
-print("horizonte = ", horizonte)
-
 
 # exibindo novamente
 
@@ -119,8 +108,6 @@ c = horizonte.z
 ''' Retificação Afim '''
 H = np.array([[1, 0, 0], [0, 1, 0], [a, b, c]])
 
-print("H: " + str(H))
-
 f_ret = [[0 for x in range(xSize)] for y in range(ySize)]
 
 for x in range(0, xSize):
@@ -135,41 +122,6 @@ for x in range(0, xSize):
             #f_ret[xr][yr] = f_ret[xr][yr] + pixelValue
             f_ret[xr][yr] = pixelValue
             #print("(x, y) = (%d, %d)" %(x, y))
-
-
-PF1.transform(H)
-PF2.transform(H)
-L_inf = PF1.cross(PF2)
-L_inf.normalize()
-
-print("Novo horizonte: " + str(L_inf))
-
-P1.transform(H)
-P2.transform(H)
-P3.transform(H)
-P4.transform(H)
-P5.transform(H)
-P6.transform(H)
-P7.transform(H)
-P8.transform(H)
-
-reta1 = P1.cross(P2)
-reta2 = P3.cross(P4)
-reta3 = P5.cross(P6)
-reta4 = P7.cross(P8)
-
-reta1.normalize()
-reta2.normalize()
-reta3.normalize()
-reta4.normalize()
-
-print("Reta1: " + str(reta1))
-print("Reta2: " + str(reta2))
-print("Reta3: " + str(reta3))
-print("Reta4: " + str(reta4))
-
-print("Reta1 X Reta2: " + str(reta1.cross(reta2)))
-print("Reta3 X Reta4: " + str(reta3.cross(reta4)))
 
 plt.imshow(f_ret)
 plt.show()
