@@ -1,26 +1,18 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+from copy import deepcopy
 from line_builder import LineBuilder
 from point import Point
 from scipy import misc
 
+inverse = np.linalg.inv
 
 def getPixel(img, x, y):
 	return img[x][y]
 
 def putPixel(img, x, y, r, g, b):
 	img[x][y] = [r, g, b]
-
-# TODO
-#def transpose(H):
-#    if len(H) != 3:
-#            raise Exception("Incorrect matrix size")
-#
-#    for line in H:
-#        if len(line) != 3: 
-#            raise Exception("Incorrect matrix size")
-
 
 
 fig = plt.figure()
@@ -122,6 +114,12 @@ for x in range(0, xSize):
             #f_ret[xr][yr] = f_ret[xr][yr] + pixelValue
             f_ret[xr][yr] = pixelValue
             #print("(x, y) = (%d, %d)" %(x, y))
+
+print()
+reta1.transform(inverse(H).transpose())
+reta2.transform(inverse(H).transpose())
+
+print("Reta1 X Reta2: " + str(reta1.cross(reta2)))
 
 plt.imshow(f_ret)
 plt.show()
