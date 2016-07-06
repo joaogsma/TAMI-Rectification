@@ -12,6 +12,16 @@ def getPixel(img, x, y):
 def putPixel(img, x, y, r, g, b):
 	img[x][y] = [r, g, b]
 
+# TODO
+#def transpose(H):
+#    if len(H) != 3:
+#            raise Exception("Incorrect matrix size")
+#
+#    for line in H:
+#        if len(line) != 3: 
+#            raise Exception("Incorrect matrix size")
+
+
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
@@ -42,10 +52,15 @@ P6 = Point(lb.xs3[1], lb.ys3[1], 1.0 )
 P7 = Point(lb.xs4[0], lb.ys4[0], 1.0 )
 P8 = Point(lb.xs4[1], lb.ys4[1], 1.0 )
 
+print("P1 = " + str(P1))
+print("P2 = " + str(P2))
+
 reta1 = P1.cross(P2)
 reta2 = P3.cross(P4)
 reta3 = P5.cross(P6)
 reta4 = P7.cross(P8)
+
+print("reta P1-P2: " + str(reta1))
 
 '''##### Produto vetorial para obter os Pontos de Fuga ######################'''
 PF1 = reta1.cross(reta2)
@@ -104,12 +119,7 @@ c = horizonte.z
 ''' Retificação Afim '''
 H = np.array([[1, 0, 0], [0, 1, 0], [a, b, c]])
 
-print("type f: ", type(f))
-print("type H: ", type(H))
-
-def transf(H, P):
-	[P0, P1, P2] = P
-	return np.array([H[0][0]*P0 + H[0][1]*P1 + H[0][2]*P2, H[1][0]*P0 + H[1][1]*P1 + H[1][2]*P2, H[2][0]*P0 + H[2][1]*P1 + H[2][2]*P2])
+print("H: " + str(H))
 
 f_ret = [[0 for x in range(xSize)] for y in range(ySize)]
 
@@ -122,9 +132,44 @@ for x in range(0, xSize):
         xr = int(p.x)
         yr = int(p.y)
         if ((0 < xr < xSize) and (0 < yr < ySize)):
-            f_ret[xr][yr] = f_ret[xr][yr] + pixelValue
-            print("(x, y) = (%d, %d)" %(x, y))
+            #f_ret[xr][yr] = f_ret[xr][yr] + pixelValue
+            f_ret[xr][yr] = pixelValue
+            #print("(x, y) = (%d, %d)" %(x, y))
 
+
+PF1.transform(H)
+PF2.transform(H)
+L_inf = PF1.cross(PF2)
+L_inf.normalize()
+
+print("Novo horizonte: " + str(L_inf))
+
+P1.transform(H)
+P2.transform(H)
+P3.transform(H)
+P4.transform(H)
+P5.transform(H)
+P6.transform(H)
+P7.transform(H)
+P8.transform(H)
+
+reta1 = P1.cross(P2)
+reta2 = P3.cross(P4)
+reta3 = P5.cross(P6)
+reta4 = P7.cross(P8)
+
+reta1.normalize()
+reta2.normalize()
+reta3.normalize()
+reta4.normalize()
+
+print("Reta1: " + str(reta1))
+print("Reta2: " + str(reta2))
+print("Reta3: " + str(reta3))
+print("Reta4: " + str(reta4))
+
+print("Reta1 X Reta2: " + str(reta1.cross(reta2)))
+print("Reta3 X Reta4: " + str(reta3.cross(reta4)))
 
 plt.imshow(f_ret)
 plt.show()
