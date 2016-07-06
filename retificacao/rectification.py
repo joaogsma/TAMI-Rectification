@@ -115,11 +115,5 @@ for x in range(0, xSize):
             f_ret[xr][yr] = pixelValue
             #print("(x, y) = (%d, %d)" %(x, y))
 
-print()
-reta1.transform(inverse(H).transpose())
-reta2.transform(inverse(H).transpose())
-
-print("Reta1 X Reta2: " + str(reta1.cross(reta2)))
-
 plt.imshow(f_ret)
 plt.show()
