@@ -24,7 +24,6 @@ class LineBuilder:
         self.count = 0
 
     def __call__(self, event):
-        print('click', event)
         if event.inaxes!=self.line1.axes: return
         if (self.count <= 1):
             self.xs1.append(event.xdata)

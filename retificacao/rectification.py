@@ -9,77 +9,88 @@ from scipy import misc
 
 inverse = np.linalg.inv
 
-def getPixel(img, x, y):
-	return img[x][y]
-
-def putPixel(img, x, y, r, g, b):
-	img[x][y] = [r, g, b]
-
-
+# =============================================================================
+# ============================== LOAD THE IMAGE ===============================
+# =============================================================================
 fig = plt.figure()
 ax = fig.add_subplot(111)
 ax.set_title('click to build line segments')
 
 f = misc.imread(sys.argv[1], mode = 'RGB')
 
-(ySize, xSize, _) = np.shape(f)
+(row_num, col_num, _) = np.shape(f)
+# -----------------------------------------------------------------------------
 
-#print("(xSize, ySize) = (%d, %d)" % (xSize, ySize))
 
 
+# =============================================================================
+# ==================== CREATE LISTENERS FOR POINT CAPTURE =====================
+# =============================================================================
 line1, = ax.plot([], [], color="r")  # empty line
 line2, = ax.plot([], [], color="r")  # empty line
 line3, = ax.plot([], [], color="g")  # empty line
 line4, = ax.plot([], [], color="g")  # empty line
 lb = LineBuilder(ax, line1, line2, line3, line4)
+# -----------------------------------------------------------------------------
+
+
 
 plt.imshow(f)
 plt.show()
-'''##### Produto vetorial para obter as Retas de Fuga #######################'''
 
-P1 = Point(lb.xs1[0], lb.ys1[0], 1.0 )
-P2 = Point(lb.xs1[1], lb.ys1[1], 1.0 )
-P3 = Point(lb.xs2[0], lb.ys2[0], 1.0 )
-P4 = Point(lb.xs2[1], lb.ys2[1], 1.0 )
-P5 = Point(lb.xs3[0], lb.ys3[0], 1.0 )
-P6 = Point(lb.xs3[1], lb.ys3[1], 1.0 )
-P7 = Point(lb.xs4[0], lb.ys4[0], 1.0 )
-P8 = Point(lb.xs4[1], lb.ys4[1], 1.0 )
 
-P1.to_img_coord(xSize, ySize)
-P2.to_img_coord(xSize, ySize)
-P3.to_img_coord(xSize, ySize)
-P4.to_img_coord(xSize, ySize)
-P5.to_img_coord(xSize, ySize)
-P6.to_img_coord(xSize, ySize)
-P7.to_img_coord(xSize, ySize)
-P8.to_img_coord(xSize, ySize)
 
-reta1 = P1.cross(P2)
-reta2 = P3.cross(P4)
-reta3 = P5.cross(P6)
-reta4 = P7.cross(P8)
+# =============================================================================
+# ========================= COMPUTE THE INFINITY LINE =========================
+# =============================================================================
+p1 = Point(lb.xs1[0], lb.ys1[0], 1.0 )
+p2 = Point(lb.xs1[1], lb.ys1[1], 1.0 )
+p3 = Point(lb.xs2[0], lb.ys2[0], 1.0 )
+p4 = Point(lb.xs2[1], lb.ys2[1], 1.0 )
+p5 = Point(lb.xs3[0], lb.ys3[0], 1.0 )
+p6 = Point(lb.xs3[1], lb.ys3[1], 1.0 )
+p7 = Point(lb.xs4[0], lb.ys4[0], 1.0 )
+p8 = Point(lb.xs4[1], lb.ys4[1], 1.0 )
 
-'''##### Produto vetorial para obter os Pontos de Fuga ######################'''
+p1.to_img_coord(col_num, row_num)
+p2.to_img_coord(col_num, row_num)
+p3.to_img_coord(col_num, row_num)
+p4.to_img_coord(col_num, row_num)
+p5.to_img_coord(col_num, row_num)
+p6.to_img_coord(col_num, row_num)
+p7.to_img_coord(col_num, row_num)
+p8.to_img_coord(col_num, row_num)
+
+reta1 = p1.cross(p2)
+reta2 = p3.cross(p4)
+reta3 = p5.cross(p6)
+reta4 = p7.cross(p8)
+
+# Compute points in the Infinity Line
 PF1 = reta1.cross(reta2)
 PF2 = reta3.cross(reta4)
 
-horizonte = PF1.cross(PF2)
-horizonte.normalize()
+# Compute the Infinity Line
+horizon = PF1.cross(PF2)
+horizon.normalize()
+# -----------------------------------------------------------------------------
 
-# exibindo novamente
 
-p1_px = P1.get_pixel_coord(xSize, ySize)
-p2_px = P2.get_pixel_coord(xSize, ySize)
-p3_px = P3.get_pixel_coord(xSize, ySize)
-p4_px = P4.get_pixel_coord(xSize, ySize)
-p5_px = P5.get_pixel_coord(xSize, ySize)
-p6_px = P6.get_pixel_coord(xSize, ySize)
-p7_px = P7.get_pixel_coord(xSize, ySize)
-p8_px = P8.get_pixel_coord(xSize, ySize)
 
-pf1_px = PF1.get_pixel_coord(xSize, ySize)
-pf2_px = PF2.get_pixel_coord(xSize, ySize)
+# =============================================================================
+# ============================= UPDATE THE IMAGE ==============================
+# =============================================================================
+p1_px = p1.get_pixel_coord(col_num, row_num)
+p2_px = p2.get_pixel_coord(col_num, row_num)
+p3_px = p3.get_pixel_coord(col_num, row_num)
+p4_px = p4.get_pixel_coord(col_num, row_num)
+p5_px = p5.get_pixel_coord(col_num, row_num)
+p6_px = p6.get_pixel_coord(col_num, row_num)
+p7_px = p7.get_pixel_coord(col_num, row_num)
+p8_px = p8.get_pixel_coord(col_num, row_num)
+
+pf1_px = PF1.get_pixel_coord(col_num, row_num)
+pf2_px = PF2.get_pixel_coord(col_num, row_num)
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
@@ -105,38 +116,41 @@ ax.plot( [p6_px[0], pf2_px[0]], [p6_px[1], pf2_px[1]], "g--", linewidth=2.0)
 ax.plot( [p8_px[0], pf2_px[0]], [p8_px[1], pf2_px[1]], "g--", linewidth=2.0)
 
 
-''' HORIZONTE'''
+# Draw the horizon (Infinity Line)
 ax.scatter(pf1_px[0] , pf1_px[1], c='b')
 ax.scatter(pf2_px[0] , pf2_px[1], c='b')
 ax.plot( [pf1_px[0], pf2_px[0]], [pf1_px[1], pf2_px[1]], color="b")
 plt.imshow(f)
 plt.show()
+# -----------------------------------------------------------------------------
 
-a = horizonte.x
-b = horizonte.y
-c = horizonte.z
 
-''' Retificação Afim '''
+
+# =============================================================================
+# =========================== AFFINE RECTIFICATION ============================
+# =============================================================================
+a = horizon.x
+b = horizon.y
+c = horizon.z
 H = np.array([[1, 0, 0], [0, 1, 0], [a, b, c]])
 
-f_ret = np.array([[ [np.uint8(0)]*3 for x in range(xSize)] for y in range(ySize)])
+f_ret = np.array([[ [np.uint8(0)]*3 for col in range(col_num)] for row in range(row_num)])
 
-for col in range(0, xSize):
-    for row in range(0, ySize):
-        #print()
-        #print(str(col) + "/" + str(xSize) + "  " + str(row) + "/" + str(ySize))
+for col in range(0, col_num):
+    for row in range(0, row_num):
         pixelValue = f[row][col]
         p = Point(col, row, 1)
-        p.to_img_coord(xSize, ySize)
+        p.to_img_coord(col_num, row_num)
         p.transform(H)
         p.normalize()
-        (col_px, row_px)  = p.get_pixel_coord(xSize, ySize)
+        (col_px, row_px)  = p.get_pixel_coord(col_num, row_num)
         
-        if ((0 < col_px < xSize) and (0 < row_px < ySize)):
-            #print(str(col_px) + "/" + str(xSize) + "  " + str(row_px) + "/" + str(ySize))
+        if ((0 < col_px < col_num) and (0 < row_px < row_num)):
             f_ret[row_px][col_px][0] = pixelValue[0]
             f_ret[row_px][col_px][1] = pixelValue[1]
             f_ret[row_px][col_px][2] = pixelValue[2]
+# -----------------------------------------------------------------------------
+
 
 
 plt.imshow(f_ret)
