@@ -42,6 +42,18 @@ class Point(object):
                      self.z*other.x - self.x*other.z, 
                      self.x*other.y - self.y*other.x)
 
+    def get_pixel_coord(self, xSize, ySize):
+        self.normalize()
+        x = int(round(self.x + (xSize / 2)))
+        y = int(round((ySize / 2) - self.y))
+
+        return (x, y)
+
+
+    def to_img_coord(self, xSize, ySize):
+        self.x = self.x - (xSize / 2)
+        self.y = (ySize / 2) - self.y
+
     def normalize(self):
         self.x /= self.z
         self.y /= self.z

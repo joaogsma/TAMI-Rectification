@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 import sys
 from copy import deepcopy
 from line_builder import LineBuilder
@@ -19,9 +20,10 @@ fig = plt.figure()
 ax = fig.add_subplot(111)
 ax.set_title('click to build line segments')
 
-f = misc.imread(sys.argv[1], mode = 'L')
+f = misc.imread(sys.argv[1], mode = 'RGB')
 
-(xSize, ySize,) = np.shape(f)
+(ySize, xSize, _) = np.shape(f)
+
 #print("(xSize, ySize) = (%d, %d)" % (xSize, ySize))
 
 
@@ -44,6 +46,15 @@ P6 = Point(lb.xs3[1], lb.ys3[1], 1.0 )
 P7 = Point(lb.xs4[0], lb.ys4[0], 1.0 )
 P8 = Point(lb.xs4[1], lb.ys4[1], 1.0 )
 
+P1.to_img_coord(xSize, ySize)
+P2.to_img_coord(xSize, ySize)
+P3.to_img_coord(xSize, ySize)
+P4.to_img_coord(xSize, ySize)
+P5.to_img_coord(xSize, ySize)
+P6.to_img_coord(xSize, ySize)
+P7.to_img_coord(xSize, ySize)
+P8.to_img_coord(xSize, ySize)
+
 reta1 = P1.cross(P2)
 reta2 = P3.cross(P4)
 reta3 = P5.cross(P6)
@@ -54,42 +65,50 @@ PF1 = reta1.cross(reta2)
 PF2 = reta3.cross(reta4)
 
 horizonte = PF1.cross(PF2)
-
-reta1.normalize()
-PF1.normalize()
-PF2.normalize()
 horizonte.normalize()
 
 # exibindo novamente
 
+p1_px = P1.get_pixel_coord(xSize, ySize)
+p2_px = P2.get_pixel_coord(xSize, ySize)
+p3_px = P3.get_pixel_coord(xSize, ySize)
+p4_px = P4.get_pixel_coord(xSize, ySize)
+p5_px = P5.get_pixel_coord(xSize, ySize)
+p6_px = P6.get_pixel_coord(xSize, ySize)
+p7_px = P7.get_pixel_coord(xSize, ySize)
+p8_px = P8.get_pixel_coord(xSize, ySize)
+
+pf1_px = PF1.get_pixel_coord(xSize, ySize)
+pf2_px = PF2.get_pixel_coord(xSize, ySize)
+
 fig = plt.figure()
 ax = fig.add_subplot(111)
 
-ax.scatter(P1.x , P1.y, c='r')
-ax.scatter(P2.x , P2.y, c='r')
-ax.plot( [P1.x, P2.x], [P1.y, P2.y], color="r", linewidth=2.0)
-ax.scatter(P3.x , P3.y, c='r')
-ax.scatter(P4.x , P4.y, c='r')
-ax.plot( [P3.x, P4.x], [P3.y, P4.y], color="r", linewidth=2.0)
+ax.scatter(p1_px[0] , p1_px[1], c='r')
+ax.scatter(p2_px[0] , p2_px[1], c='r')
+ax.plot( [p1_px[0], p2_px[0]], [p1_px[1], p2_px[1]], color="r", linewidth=2.0)
+ax.scatter(p3_px[0] , p3_px[1], c='r')
+ax.scatter(p4_px[0] , p4_px[1], c='r')
+ax.plot( [p3_px[0], p4_px[0]], [p3_px[1], p4_px[1]], color="r", linewidth=2.0)
 
-ax.plot( [P2.x, PF1.x], [P2.y, PF1.y], "r--", linewidth=2.0)
-ax.plot( [P4.x, PF1.x], [P4.y, PF1.y], "r--", linewidth=2.0)
+ax.plot( [p2_px[0], pf1_px[0]], [p2_px[1], pf1_px[1]], "r--", linewidth=2.0)
+ax.plot( [p4_px[0], pf1_px[0]], [p4_px[1], pf1_px[1]], "r--", linewidth=2.0)
 
-ax.scatter(P5.x , P5.y, c='g')
-ax.scatter(P6.x , P6.y, c='g')
-ax.plot( [P5.x, P6.x], [P5.y, P6.y], color="g")
-ax.scatter(P7.x , P7.y, c='g')
-ax.scatter(P8.x , P8.y, c='g')
-ax.plot( [P7.x, P8.x], [P7.y, P8.y], color="g")
+ax.scatter(p5_px[0] , p5_px[1], c='g')
+ax.scatter(p6_px[0] , p6_px[1], c='g')
+ax.plot( [p5_px[0], p6_px[0]], [p5_px[1], p6_px[1]], color="g", linewidth=2.0)
+ax.scatter(p7_px[0] , p7_px[1], c='g')
+ax.scatter(p8_px[0] , p8_px[1], c='g')
+ax.plot( [p7_px[0], p8_px[0]], [p7_px[1], p8_px[1]], color="g", linewidth=2.0)
 
-ax.plot([P6.x, PF2.x], [P6.y, PF2.y], "g--", linewidth=2.0)
-ax.plot([P8.x, PF2.x], [P8.y, PF2.y], "g--", linewidth=2.0)
+ax.plot( [p6_px[0], pf2_px[0]], [p6_px[1], pf2_px[1]], "g--", linewidth=2.0)
+ax.plot( [p8_px[0], pf2_px[0]], [p8_px[1], pf2_px[1]], "g--", linewidth=2.0)
 
 
 ''' HORIZONTE'''
-ax.scatter(PF1.x , PF1.y, c='b')
-ax.scatter(PF2.x , PF2.y, c='b')
-ax.plot( [PF1.x, PF2.x], [PF1.y, PF2.y], color="b")
+ax.scatter(pf1_px[0] , pf1_px[1], c='b')
+ax.scatter(pf2_px[0] , pf2_px[1], c='b')
+ax.plot( [pf1_px[0], pf2_px[0]], [pf1_px[1], pf2_px[1]], color="b")
 plt.imshow(f)
 plt.show()
 
@@ -100,20 +119,25 @@ c = horizonte.z
 ''' Retificação Afim '''
 H = np.array([[1, 0, 0], [0, 1, 0], [a, b, c]])
 
-f_ret = [[0 for x in range(xSize)] for y in range(ySize)]
+f_ret = np.array([[ [np.uint8(0)]*3 for x in range(xSize)] for y in range(ySize)])
 
-for x in range(0, xSize):
-    for y in range(0, ySize):
-        pixelValue = f[x][y]
-        p = Point(x, y, 1)
+for col in range(0, xSize):
+    for row in range(0, ySize):
+        #print()
+        #print(str(col) + "/" + str(xSize) + "  " + str(row) + "/" + str(ySize))
+        pixelValue = f[row][col]
+        p = Point(col, row, 1)
+        p.to_img_coord(xSize, ySize)
         p.transform(H)
         p.normalize()
-        xr = int(p.x)
-        yr = int(p.y)
-        if ((0 < xr < xSize) and (0 < yr < ySize)):
-            #f_ret[xr][yr] = f_ret[xr][yr] + pixelValue
-            f_ret[xr][yr] = pixelValue
-            #print("(x, y) = (%d, %d)" %(x, y))
+        (col_px, row_px)  = p.get_pixel_coord(xSize, ySize)
+        
+        if ((0 < col_px < xSize) and (0 < row_px < ySize)):
+            #print(str(col_px) + "/" + str(xSize) + "  " + str(row_px) + "/" + str(ySize))
+            f_ret[row_px][col_px][0] = pixelValue[0]
+            f_ret[row_px][col_px][1] = pixelValue[1]
+            f_ret[row_px][col_px][2] = pixelValue[2]
+
 
 plt.imshow(f_ret)
 plt.show()
