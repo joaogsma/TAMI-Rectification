@@ -6,6 +6,7 @@ from copy import deepcopy
 from line_builder import LineBuilder
 from point import Point
 from scipy import misc
+from numpy.linalg import inv
 
 inverse = np.linalg.inv
 
@@ -134,21 +135,51 @@ b = horizon.y
 c = horizon.z
 H = np.array([[1, 0, 0], [0, 1, 0], [a, b, c]])
 
+H_inv = inv(H)
+
 f_ret = np.array([[ [np.uint8(0)]*3 for col in range(col_num)] for row in range(row_num)])
 
+'''
+# Direto
 for col in range(0, col_num):
     for row in range(0, row_num):
-        pixelValue = f[row][col]
+
         p = Point(col, row, 1)
         p.to_img_coord(col_num, row_num)
         p.transform(H)
         p.normalize()
         (col_px, row_px)  = p.get_pixel_coord(col_num, row_num)
-        
+
         if ((0 < col_px < col_num) and (0 < row_px < row_num)):
+            #Imagem original
+            pixelValue = f[row][col]
+            #Imagem retificada
             f_ret[row_px][col_px][0] = pixelValue[0]
             f_ret[row_px][col_px][1] = pixelValue[1]
             f_ret[row_px][col_px][2] = pixelValue[2]
+'''
+
+
+for col in range(0, col_num):
+    for row in range(0, row_num):
+
+        p_ret = Point(col, row, 1) #
+        p_ret.to_img_coord(col_num, row_num)
+        p_ret.transform(H_inv)
+        p_ret.normalize()
+        p = p_ret
+
+        (col_px, row_px)  = p.get_pixel_coord(col_num, row_num)
+
+        if ((0 < col_px < col_num) and (0 < row_px < row_num)):
+            #Imagem original
+            pixelValue = f[row_px][col_px]
+            #Imagem retificada
+            f_ret[row][col][0] = pixelValue[0] #R
+            f_ret[row][col][1] = pixelValue[1] #G
+            f_ret[row][col][2] = pixelValue[2] #B
+
+
 # -----------------------------------------------------------------------------
 
 
