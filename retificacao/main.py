@@ -2,9 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import sys
-from line_builder import LineBuilder
+from line_builder import Line_Builder
 from point import Point
-from rectification import stratified_metric_rect
+from rectification import remove_projective_distortion
 from scipy import misc
 
 # =============================================================================
@@ -17,7 +17,6 @@ ax.set_title('click to build line segments')
 f = misc.imread(sys.argv[1], mode = 'RGB')
 
 (row_num, col_num, _) = f.shape
-print(f.shape)
 # -----------------------------------------------------------------------------
 
 
@@ -25,11 +24,7 @@ print(f.shape)
 # =============================================================================
 # ==================== CREATE LISTENERS FOR POINT CAPTURE =====================
 # =============================================================================
-line1, = ax.plot([], [], color="r")  # empty line
-line2, = ax.plot([], [], color="r")  # empty line
-line3, = ax.plot([], [], color="g")  # empty line
-line4, = ax.plot([], [], color="g")  # empty line
-lb = LineBuilder(ax, line1, line2, line3, line4)
+line_builder = Line_Builder(fig, ax, 6, col_num, row_num)
 # -----------------------------------------------------------------------------
 
 
@@ -42,32 +37,13 @@ plt.show()
 # =============================================================================
 # ========================= COMPUTE THE INFINITY LINE =========================
 # =============================================================================
-p1 = Point(lb.xs1[0], lb.ys1[0], 1.0 )
-p2 = Point(lb.xs1[1], lb.ys1[1], 1.0 )
-p3 = Point(lb.xs2[0], lb.ys2[0], 1.0 )
-p4 = Point(lb.xs2[1], lb.ys2[1], 1.0 )
-p5 = Point(lb.xs3[0], lb.ys3[0], 1.0 )
-p6 = Point(lb.xs3[1], lb.ys3[1], 1.0 )
-p7 = Point(lb.xs4[0], lb.ys4[0], 1.0 )
-p8 = Point(lb.xs4[1], lb.ys4[1], 1.0 )
+(p1, p2, p3, p4, p5, p6, p7, p8) = line_builder.get_points()
 
-p1.to_img_coord(col_num, row_num)
-p2.to_img_coord(col_num, row_num)
-p3.to_img_coord(col_num, row_num)
-p4.to_img_coord(col_num, row_num)
-p5.to_img_coord(col_num, row_num)
-p6.to_img_coord(col_num, row_num)
-p7.to_img_coord(col_num, row_num)
-p8.to_img_coord(col_num, row_num)
-
-reta1 = p1.cross(p2)
-reta2 = p3.cross(p4)
-reta3 = p5.cross(p6)
-reta4 = p7.cross(p8)
+(line1, line2, line3, line4) = line_builder.get_lines()
 
 # Compute points in the Infinity Line
-PF1 = reta1.cross(reta2)
-PF2 = reta3.cross(reta4)
+PF1 = line1.cross(line2)
+PF2 = line3.cross(line4)
 
 # Compute the Infinity Line
 horizon = PF1.cross(PF2)
@@ -128,8 +104,7 @@ plt.show()
 # =============================================================================
 # ============================== RECTIFICATION ================================
 # =============================================================================
-# TODO
-#f_ = stratified_metric_rect(f, parallel_line_pairs, perpendicular_line_pairs)
+f_ = remove_projective_distortion(f, [(line1, line2), (line3, line4)])
 # -----------------------------------------------------------------------------
 
 

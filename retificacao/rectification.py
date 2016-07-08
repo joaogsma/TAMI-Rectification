@@ -44,8 +44,8 @@ def transform_image(H, image, invert=True):
 
     return image_
 
-def is_line_pair_list(list_, ):
-    for pair in perpendicular_line_pairs:
+def is_line_pair_list(list_):
+    for pair in list_:
         if (type(pair) != tuple or type(pair[0]) != Point or 
                 type(pair[1]) != Point):
             return False
@@ -81,12 +81,13 @@ def solve_system(perpendicular_line_pairs):
 # =============================================================================
 def remove_projective_distortion(image, parallel_line_pairs):
     # Check input format
-    if len(parallel_lines) != 2 or not is_line_pair_list(parallel_line_pairs):
+    if (len(parallel_line_pairs) != 2 or 
+            not is_line_pair_list(parallel_line_pairs)):
         raise Exception("Incorrect set of parallel line pairs")
 
     # Compute the vanishing points
     vanishing_points = list()
-    for pair in parallel_lines:
+    for pair in parallel_line_pairs:
         vp = pair[0].cross(pair[1])
         vanishing_points.append(vp)
 
@@ -111,6 +112,11 @@ def remove_affine_distortion(image, perpendicular_line_pairs):
     if (len(perpendicular_line_pairs) != 2 or 
             not is_line_pair_list(perpendicular_line_pairs)):
         raise Exception("Incorrect set of perpendicular line pairs")
+
+    # Normalize all the lines
+    for (l1, l2) in perpendicular_line_pairs:
+        l1.normalize()
+        l2.normalize()
 
     # Compute the elements which specify the conic dual to the circular points 
     (b, c) = solve_system(perpendicular_line_pairs)
@@ -137,5 +143,5 @@ def stratified_metric_rect(image, parallel_line_pairs,
     image = remove_affine_distortion(image, perpendicular_line_pairs)
 
     return image
-    
+  
 # =============================================================================
