@@ -47,7 +47,7 @@ class Point(object):
         x = int(round(self.x + (xSize / 2)))
         y = int(round((ySize / 2) - self.y))
 
-        return (x, y)
+        return (y, x)
 
 
     def to_img_coord(self, xSize, ySize):
