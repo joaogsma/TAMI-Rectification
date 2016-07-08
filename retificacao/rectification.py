@@ -64,7 +64,7 @@ def solve_system(perpendicular_line_pairs):
     (r1, r2, r3) = [r.x, r.y, r.z]
     (s1, s2, s3) = [s.x, s.y, s.z]
 
-    b = r1*s1*l2*m2 - r2*s2*l1*m1
+    b = (r1*s1*l2*m2) - (r2*s2*l1*m1)
     b /= l1*m1*(r1*s2 + r2*s1) - r1*s1*(l1*m2 + l2*m1)
 
     c = -(l1*m2 + l2*m1)*b - l2*m2
@@ -120,6 +120,8 @@ def remove_affine_distortion(image, perpendicular_line_pairs):
 
     # Compute the elements which specify the conic dual to the circular points 
     (b, c) = solve_system(perpendicular_line_pairs)
+    #print(c)
+    #print(b)
     a = sqrt(c - b*b)
 
     # Compute the matrix H_a_inv. This is the transformation that caused the 

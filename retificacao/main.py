@@ -5,6 +5,7 @@ import sys
 from line_builder import Line_Builder
 from point import Point
 from rectification import remove_projective_distortion
+from rectification import stratified_metric_rect
 from scipy import misc
 
 # =============================================================================
@@ -24,11 +25,11 @@ f = misc.imread(sys.argv[1], mode = 'RGB')
 # =============================================================================
 # ==================== CREATE LISTENERS FOR POINT CAPTURE =====================
 # =============================================================================
-line_builder = Line_Builder(fig, ax, 4, col_num, row_num)
+line_builder = Line_Builder(fig, ax, 8, col_num, row_num)
 # -----------------------------------------------------------------------------
 
 
-
+fig.canvas.set_window_title('Original Image')
 plt.imshow(f)
 plt.show()
 
@@ -37,9 +38,9 @@ plt.show()
 # =============================================================================
 # ========================= COMPUTE THE INFINITY LINE =========================
 # =============================================================================
-(p1, p2, p3, p4, p5, p6, p7, p8) = line_builder.get_points()
+(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16) = line_builder.get_points()
 
-(line1, line2, line3, line4) = line_builder.get_lines()
+(line1, line2, line3, line4, line5, line6, line7, line8) = line_builder.get_lines()
 
 # Compute points in the Infinity Line
 PF1 = line1.cross(line2)
@@ -95,6 +96,7 @@ ax.plot( [p8_px[1], pf2_px[1]], [p8_px[0], pf2_px[0]], "g--", linewidth=2.0)
 ax.scatter(pf1_px[1] , pf1_px[0], c='b')
 ax.scatter(pf2_px[1] , pf2_px[0], c='b')
 ax.plot( [pf1_px[1], pf2_px[1]], [pf1_px[0], pf2_px[0]], color="b")
+fig.canvas.set_window_title('Original Image with Infinity Line')
 plt.imshow(f)
 plt.show()
 # -----------------------------------------------------------------------------
@@ -106,8 +108,18 @@ plt.show()
 # =============================================================================
 f_ = remove_projective_distortion(f, [(line1, line2), (line3, line4)])
 # -----------------------------------------------------------------------------
-
-
-
+fig = plt.figure()
+fig.canvas.set_window_title('Removed Projective Distortion')
 plt.imshow(f_)
+plt.show()
+
+
+# =============================================================================
+# ============================== STRATIFIED_METRIC_RECT ================================
+# =============================================================================
+f__ = stratified_metric_rect(f, [(line1, line2), (line3, line4)], [(line5, line6), (line7, line8)])
+# -----------------------------------------------------------------------------
+fig = plt.figure()
+fig.canvas.set_window_title('Stratified Metric Rectification')
+plt.imshow(f__)
 plt.show()
