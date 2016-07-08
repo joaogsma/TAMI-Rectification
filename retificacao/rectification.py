@@ -112,11 +112,18 @@ def remove_affine_distortion(image, perpendicular_line_pairs):
             not is_line_pair_list(perpendicular_line_pairs)):
         raise Exception("Incorrect set of perpendicular line pairs")
 
+    # Compute the elements which specify the conic dual to the circular points 
     (b, c) = solve_system(perpendicular_line_pairs)
     a = sqrt(c - b*b)
 
+    # Compute the matrix H_a_inv. This is the transformation that caused the 
+    # affine distortion of the matrix, as opposed to its inverse (H_a, not 
+    # computed), which which would remove the distortion.
     H_a_inv = np.array([[a, b, 1], [0, 1, 0], [0, 0, 1]])
 
+    # Compute the transformed image and return it. There is no need to compute
+    # H_a, since transform_image would utilize its inverse to avoid having
+    # holes in the rectified image
     return transform_image(H_a_inv, image, invert=False)
 
 
@@ -132,5 +139,3 @@ def stratified_metric_rect(image, parallel_line_pairs,
     return image
     
 # =============================================================================
-
-
