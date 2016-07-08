@@ -2,10 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import sys
-from copy import deepcopy
 from line_builder import LineBuilder
 from point import Point
-from rectification import affine_rectification
+from rectification import stratified_metric_rect
 from scipy import misc
 
 # =============================================================================
@@ -17,7 +16,8 @@ ax.set_title('click to build line segments')
 
 f = misc.imread(sys.argv[1], mode = 'RGB')
 
-(row_num, col_num, _) = np.shape(f)
+(row_num, col_num, _) = f.shape
+print(f.shape)
 # -----------------------------------------------------------------------------
 
 
@@ -128,7 +128,8 @@ plt.show()
 # =============================================================================
 # ============================== RECTIFICATION ================================
 # =============================================================================
-f_ = affine_rectification(f, horizon)
+# TODO
+#f_ = stratified_metric_rect(f, parallel_line_pairs, perpendicular_line_pairs)
 # -----------------------------------------------------------------------------
 
 
