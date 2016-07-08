@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+from matplotlib.widgets import Button
 import sys
 from line_builder import Line_Builder
 from point import Point
@@ -8,12 +9,18 @@ from rectification import remove_projective_distortion
 from rectification import stratified_metric_rect
 from scipy import misc
 
+## Close window and change progress in code
+def press(event):
+    print('press', event.key)
+    if event.key == 'enter':
+        plt.close()
+
 # =============================================================================
 # ============================== LOAD THE IMAGE ===============================
 # =============================================================================
 fig = plt.figure()
 ax = fig.add_subplot(111)
-ax.set_title('click to build line segments')
+ax.set_title('Click to build line segments')
 
 f = misc.imread(sys.argv[1], mode = 'RGB')
 
@@ -30,9 +37,9 @@ line_builder = Line_Builder(fig, ax, 8, col_num, row_num)
 
 
 fig.canvas.set_window_title('Original Image')
+fig.canvas.mpl_connect('key_press_event', press)
 plt.imshow(f)
 plt.show()
-
 
 
 # =============================================================================
@@ -97,6 +104,7 @@ ax.scatter(pf1_px[1] , pf1_px[0], c='b')
 ax.scatter(pf2_px[1] , pf2_px[0], c='b')
 ax.plot( [pf1_px[1], pf2_px[1]], [pf1_px[0], pf2_px[0]], color="b")
 fig.canvas.set_window_title('Original Image with Infinity Line')
+fig.canvas.mpl_connect('key_press_event', press)
 plt.imshow(f)
 plt.show()
 # -----------------------------------------------------------------------------
@@ -110,6 +118,7 @@ f_ = remove_projective_distortion(f, [(line1, line2), (line3, line4)])
 # -----------------------------------------------------------------------------
 fig = plt.figure()
 fig.canvas.set_window_title('Removed Projective Distortion')
+fig.canvas.mpl_connect('key_press_event', press)
 plt.imshow(f_)
 plt.show()
 
@@ -121,5 +130,6 @@ f__ = stratified_metric_rect(f, [(line1, line2), (line3, line4)], [(line5, line6
 # -----------------------------------------------------------------------------
 fig = plt.figure()
 fig.canvas.set_window_title('Stratified Metric Rectification')
+fig.canvas.mpl_connect('key_press_event', press)
 plt.imshow(f__)
 plt.show()
