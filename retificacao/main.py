@@ -8,12 +8,21 @@ from point import Point
 from rectification import remove_projective_distortion
 from rectification import stratified_metric_rect
 from scipy import misc
+import time
+
+# For image aquisition
+from tkinter import *
+from tkinter.filedialog import askopenfilename
+from PIL import Image, ImageTk
+
+
+#def openImage():
 
 
 
 ## Close window and change progress in code
 def press(event):
-    print('press', event.key)
+    #print('press', event.key)
     if event.key == 'enter':
         plt.close()
 
@@ -21,11 +30,15 @@ def press(event):
 # ============================== LOAD THE IMAGE ===============================
 # =============================================================================
 
+filename = askopenfilename(filetypes=[("all files","*"),("Bitmap Files","*.bmp; *.dib"),
+                                        ("JPEG", "*.jpg; *.jpe; *.jpeg; *.jfif"),
+                                        ("PNG", "*.png"), ("TIFF", "*.tiff; *.tif")])
+
+image = misc.imread(filename, mode = 'RGB')
+
 fig = plt.figure()
 ax = fig.add_subplot(111)
 ax.set_title('Click to build line segments')
-
-image = misc.imread(sys.argv[1], mode = 'RGB')
 
 (row_num, col_num, _) = image.shape
 
@@ -139,8 +152,11 @@ while i < len(lines):
 parallel_line_pairs = line_pairs[:2]
 perpendicular_line_pairs = line_pairs[2:]
 
+#tic = time.clock()
 image_ = stratified_metric_rect(image, parallel_line_pairs, 
                             perpendicular_line_pairs)
+#toc = time.clock()
+#print(toc - tic)
 
 # =============================================================================
 
