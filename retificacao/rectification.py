@@ -8,6 +8,7 @@ from point import Point
 # =============================================================================
 # ============================= UTILITY FUNCTIONS =============================
 # =============================================================================
+
 # Returns an image, which is the application of the given transformation 'H' on
 # the given image 'image'. The transformation is applied through the inverse of
 # H, thus avoiding the presence of holes in the transformed image. Set invert=
@@ -52,7 +53,7 @@ def is_line_pair_list(list_):
 
     return True
 
-def solve_system(perpendicular_line_pairs):
+def solve_k_matrix_system(perpendicular_line_pairs):
     pair1 = perpendicular_line_pairs[0]
     pair2 = perpendicular_line_pairs[1]
     
@@ -79,6 +80,7 @@ def solve_system(perpendicular_line_pairs):
 # =============================================================================
 # ========================= STRATIFIED RECTIFICATION ==========================
 # =============================================================================
+
 def remove_projective_distortion(image, parallel_line_pairs):
     # Check input format
     if (len(parallel_line_pairs) != 2 or 
@@ -104,7 +106,7 @@ def remove_projective_distortion(image, parallel_line_pairs):
     H_p = np.array([[1, 0, 0], [0, 1, 0], [a, b, c]])
 
     # Compute the transformed image and return it
-    return transform_image(H_p, image) 
+    return transform_image(H_p, image), H_p
 
 
 def remove_affine_distortion(image, perpendicular_line_pairs):
@@ -119,7 +121,7 @@ def remove_affine_distortion(image, perpendicular_line_pairs):
         l2.normalize()
 
     # Compute the elements which specify the conic dual to the circular points 
-    (b, c) = solve_system(perpendicular_line_pairs)
+    (b, c) = solve_k_matrix_system(perpendicular_line_pairs)
     #print(c)
     #print(b)
     a = sqrt(c - b*b)
@@ -132,18 +134,26 @@ def remove_affine_distortion(image, perpendicular_line_pairs):
     # Compute the transformed image and return it. There is no need to compute
     # H_a, since transform_image would utilize its inverse to avoid having
     # holes in the rectified image
-    return transform_image(H_a_inv, image, invert=False)
+    return transform_image(H_a_inv, image, invert=False), inv(H_a_inv)
 
 
 def stratified_metric_rect(image, parallel_line_pairs, 
                            perpendicular_line_pairs):
-    
     # Remove projective distortions on the image (affine rectification)
-    image = remove_projective_distortion(image, parallel_line_pairs)
+    (image, H_p) = remove_projective_distortion(image, parallel_line_pairs)
+
+    # Correct coordinates from the perpendicular lines
+    perpendicular_line_pairs = deepcopy(perpendicular_line_pairs)
+    H_p_line = inv(H_p).transpose()
+    for (l1, l2) in perpendicular_line_pairs:
+        l1.transform(H_p_line)
+        l2.transform(H_p_line)
 
     # Remove affine distortions on the image (metric rectification)
-    image = remove_affine_distortion(image, perpendicular_line_pairs)
+    (image, H_a) = remove_affine_distortion(image, perpendicular_line_pairs)
 
+    # TODO: Maybe return the complete transformation as well for some possible 
+    # future use
     return image
   
 # =============================================================================

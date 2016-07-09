@@ -10,8 +10,9 @@ class Line_Builder:
 
         self.lines = list()
         while len(self.lines) < n_lines:
-            draw_color = ("r" if len(self.lines)<2 else 
-                     ("g" if len(self.lines)<4 else "b"))
+            draw_color = ("r" if len(self.lines) < 2 else 
+                          ("g" if len(self.lines) < 4 else 
+                            ("b" if len(self.lines) < 6 else "c")))
             l, = ax.plot([], [], color=draw_color)  # empty line
             self.lines.append(l)
 
@@ -64,8 +65,9 @@ class Line_Builder:
         if self.count >= 2*self.n_lines:
             return
         
-        draw_color = ("r" if self.count<4 else 
-                     ("g" if self.count<8 else "b"))
+        draw_color = ("r" if self.count < 4 else 
+                      ("g" if self.count < 8 else 
+                        ("b" if self.count < 12 else "c")))
 
         self.x_list.append(event.xdata)
         self.y_list.append(event.ydata)

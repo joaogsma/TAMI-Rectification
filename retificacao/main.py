@@ -9,6 +9,8 @@ from rectification import remove_projective_distortion
 from rectification import stratified_metric_rect
 from scipy import misc
 
+
+
 ## Close window and change progress in code
 def press(event):
     print('press', event.key)
@@ -18,59 +20,71 @@ def press(event):
 # =============================================================================
 # ============================== LOAD THE IMAGE ===============================
 # =============================================================================
+
 fig = plt.figure()
 ax = fig.add_subplot(111)
 ax.set_title('Click to build line segments')
 
-f = misc.imread(sys.argv[1], mode = 'RGB')
+image = misc.imread(sys.argv[1], mode = 'RGB')
 
-(row_num, col_num, _) = f.shape
-# -----------------------------------------------------------------------------
+(row_num, col_num, _) = image.shape
+
+# =============================================================================
 
 
 
 # =============================================================================
 # ==================== CREATE LISTENERS FOR POINT CAPTURE =====================
 # =============================================================================
+
 line_builder = Line_Builder(fig, ax, 8, col_num, row_num)
-# -----------------------------------------------------------------------------
+
+# =============================================================================
 
 
 fig.canvas.set_window_title('Original Image')
 fig.canvas.mpl_connect('key_press_event', press)
-plt.imshow(f)
+plt.imshow(image)
 plt.show()
 
 
 # =============================================================================
 # ========================= COMPUTE THE INFINITY LINE =========================
 # =============================================================================
-(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16) = line_builder.get_points()
 
-(line1, line2, line3, line4, line5, line6, line7, line8) = line_builder.get_lines()
+points = line_builder.get_points()
+#(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16) = line_builder.get_points()
+
+lines = line_builder.get_lines()
+#(line1, line2, line3, line4, line5, line6, line7, line8) = line_builder.get_lines()
+
+if len(lines) < 8:
+    raise Exception("Not enough input lines")
 
 # Compute points in the Infinity Line
-PF1 = line1.cross(line2)
-PF2 = line3.cross(line4)
+PF1 = lines[0].cross(lines[1])
+PF2 = lines[2].cross(lines[3])
 
 # Compute the Infinity Line
 horizon = PF1.cross(PF2)
 horizon.normalize()
-# -----------------------------------------------------------------------------
+
+# =============================================================================
 
 
 
 # =============================================================================
 # ============================= UPDATE THE IMAGE ==============================
 # =============================================================================
-p1_px = p1.get_pixel_coord(col_num, row_num)
-p2_px = p2.get_pixel_coord(col_num, row_num)
-p3_px = p3.get_pixel_coord(col_num, row_num)
-p4_px = p4.get_pixel_coord(col_num, row_num)
-p5_px = p5.get_pixel_coord(col_num, row_num)
-p6_px = p6.get_pixel_coord(col_num, row_num)
-p7_px = p7.get_pixel_coord(col_num, row_num)
-p8_px = p8.get_pixel_coord(col_num, row_num)
+
+p1_px = points[0].get_pixel_coord(col_num, row_num)
+p2_px = points[1].get_pixel_coord(col_num, row_num)
+p3_px = points[2].get_pixel_coord(col_num, row_num)
+p4_px = points[3].get_pixel_coord(col_num, row_num)
+p5_px = points[4].get_pixel_coord(col_num, row_num)
+p6_px = points[5].get_pixel_coord(col_num, row_num)
+p7_px = points[6].get_pixel_coord(col_num, row_num)
+p8_px = points[7].get_pixel_coord(col_num, row_num)
 
 pf1_px = PF1.get_pixel_coord(col_num, row_num)
 pf2_px = PF2.get_pixel_coord(col_num, row_num)
@@ -103,33 +117,35 @@ ax.plot( [p8_px[1], pf2_px[1]], [p8_px[0], pf2_px[0]], "g--", linewidth=2.0)
 ax.scatter(pf1_px[1] , pf1_px[0], c='b')
 ax.scatter(pf2_px[1] , pf2_px[0], c='b')
 ax.plot( [pf1_px[1], pf2_px[1]], [pf1_px[0], pf2_px[0]], color="b")
+
 fig.canvas.set_window_title('Original Image with Infinity Line')
 fig.canvas.mpl_connect('key_press_event', press)
-plt.imshow(f)
-plt.show()
-# -----------------------------------------------------------------------------
-
-
-
-# =============================================================================
-# ============================== RECTIFICATION ================================
-# =============================================================================
-f_ = remove_projective_distortion(f, [(line1, line2), (line3, line4)])
-# -----------------------------------------------------------------------------
-fig = plt.figure()
-fig.canvas.set_window_title('Removed Projective Distortion')
-fig.canvas.mpl_connect('key_press_event', press)
-plt.imshow(f_)
+plt.imshow(image)
 plt.show()
 
+# =============================================================================
+
 
 # =============================================================================
-# ============================== STRATIFIED_METRIC_RECT ================================
+# ===================== STRATIFIED METRIC RECTIFICATION =======================
 # =============================================================================
-f__ = stratified_metric_rect(f, [(line1, line2), (line3, line4)], [(line5, line6), (line7, line8)])
-# -----------------------------------------------------------------------------
+
+line_pairs = list()
+i = 0
+while i < len(lines):
+    line_pairs.append( (lines[i], lines[i+1]) )
+    i += 2 
+
+parallel_line_pairs = line_pairs[:2]
+perpendicular_line_pairs = line_pairs[2:]
+
+image_ = stratified_metric_rect(image, parallel_line_pairs, 
+                            perpendicular_line_pairs)
+
+# =============================================================================
+
 fig = plt.figure()
-fig.canvas.set_window_title('Stratified Metric Rectification')
+fig.canvas.set_window_title('Rectified Image (Stratified Metric Rectification)')
 fig.canvas.mpl_connect('key_press_event', press)
-plt.imshow(f__)
+plt.imshow(image_)
 plt.show()
