@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 class Point(object):
     def __init__(self, x, y, z):
@@ -36,6 +37,10 @@ class Point(object):
     
     def __str__(self):
         return "(%f, %f, %f)" % (self.x, self.y, self.z)
+
+    def euclideanDistance(self,other):
+        diff = self-other
+        return math.sqrt(diff*diff)
     
     def cross(self, other):
         return Point(self.y*other.z - self.z*other.y, 

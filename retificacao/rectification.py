@@ -7,7 +7,7 @@ from point import Point
 
 
 # =============================================================================
-# ============================= UTILITY FUNCTIONS =============================
+# ================================== COMMON  ==================================
 # =============================================================================
 
 # Returns an image, which is the application of the given transformation 'H' on
@@ -54,6 +54,14 @@ def is_line_pair_list(list_):
 
     return True
 
+# =============================================================================
+
+
+
+# =============================================================================
+# ========================= STRATIFIED RECTIFICATION ==========================
+# =============================================================================
+
 def solve_k_matrix_system(orthogonal_line_pairs):
     pair1 = orthogonal_line_pairs[0]
     pair2 = orthogonal_line_pairs[1]
@@ -73,20 +81,6 @@ def solve_k_matrix_system(orthogonal_line_pairs):
     c /= l1*m1
 
     return b, c
-
-def null_space(A, eps=1e-20):
-   u, s, vh = scipy.linalg.svd(A)
-   null_mask = (s <= eps)
-   null_space = scipy.compress(null_mask, vh, axis=0)
-   return scipy.transpose(null_space)
-
-# =============================================================================
-
-
-
-# =============================================================================
-# ========================= STRATIFIED RECTIFICATION ==========================
-# =============================================================================
 
 def remove_projective_distortion(image, parallel_line_pairs):
     # Check input format
@@ -171,6 +165,16 @@ def stratified_metric_rect(image, parallel_line_pairs,
 # ======================= DIRECT METRIC RECTIFICATION =========================
 # =============================================================================
 
+# Compute the null space of the matrix A, with eps being the maximum acceptable
+# error
+def null_space(A, eps=1e-15):
+   u, s, vh = scipy.linalg.svd(A)
+   null_mask = (s <= eps)
+   null_space = scipy.compress(null_mask, vh, axis=0)
+   return scipy.transpose(null_space)
+
+# Create the constraint on the conic dual of the circular points that 
+# corresponds to the two lines l and m
 def create_equation(l, m):
     (l1, l2, l3) = [l.x, l.y, l.z]
     (m1, m2, m3) = [m.x, m.y, m.z]
@@ -178,6 +182,10 @@ def create_equation(l, m):
     return [l1*m1, (l1*m2 + l2*m1)/2, l2*m2, (l1*m3 + l3*m1)/2, 
             (l2*m3 + l3*m2)/2, l3*m3]
 
+# Create the 6x6 matrix corresponding to the system of equations needed to find 
+# the image of the conic dual of the circular points. The first 5 rows 
+# correspond to the constraints derived from the orthogonal lines, and the 6th
+# row is the length 6 zero vector, so that the matrix is square
 def create_matrix(orthogonal_line_pairs):
     # Check input format
     if (len(orthogonal_line_pairs) != 5 or 
@@ -193,64 +201,58 @@ def create_matrix(orthogonal_line_pairs):
 
     return np.matrix(equations)
 
-def compute_transformation(matrix):
-    matrix = matrix.getA()
+# Compute the projective transformation which occurred on the conic dual of the 
+# circular points. The input C corresponds to its distorted image
+def compute_transformation(C):
+    matrix = C.getA()
     
     c = matrix[0][0]
     b = matrix[0][1]
+    d = matrix[1][1]
     a = sqrt(c - b*b)
     val1 = matrix[0][2]
     val2 = matrix[1][2]
 
     v1 = (val1 - b*val2) / (c - b*b)
     v2 = val2 - b*v1
-
+    
+    # H_p is the projective part of the transformation, similar to the H_p in 
+    # the stratified metric rectification
     H_p = np.matrix([[1, 0, 0], [0, 1, 0], [v1, v2, 1]])
+    # H_a is the affine part of the transformation, similar to the H_a in the 
+    # stratified metric transformation
     H_a = np.matrix([[a, b, 0], [0, 1, 0], [0, 0, 1]])
+    # The complete transformation (up to a similarity) is H_p*H_a
     H = H_p*H_a
     
     return H
 
+# 
 def direct_metric_rect(image, orthogonal_line_pairs):
+    # Compute the system of equations needed to identify C^*_inf. This is a 6x6
+    # matrix, with the last row being the zero vector
     matrix = create_matrix(orthogonal_line_pairs)
 
-    # Compute the conic C, as a 6 vector (a, b, c, d, e, f)
-    c = np.array(null_space(matrix))
+    # Compute the conic C, as a 6 vector (a, b, c, d, e, f) which is the null 
+    # space of the system of equations
+    C = np.array(null_space(matrix))
 
-    print(matrix*np.matrix([[x] for x in map(lambda x: x[0], c)]))
-    print()
+    # Create the conic matrix C, which is the image of C^*_inf
+    (a, b, c, d, e, f) = map(lambda x: x[0], C)
+    C = np.matrix([[a, b/2, d/2], [b/2, c, e/2], [d/2, e/2, f]])
+    # Normalize the KK^T elements in C to the format [[c, b], [b, 1]]
+    C *= 1/c
     
-    # Create the conic matrix C
-    (a, b, c, d, e, f) = map(lambda x: x[0], c)
-    c = np.matrix([[a, b/2, d/2], [b/2, c, e/2], [d/2, e/2, f]])
+    H = []
+    try:
+        # Compute the projective transformation that occurred on C^*_inf. This 
+        # is not the rectifying transformation, but the one corresponding to 
+        # the distortion
+        H = compute_transformation(C)
+    except ValueError:
+        raise Exception("Bad line choices")
 
-    print("conic")
-    print(c)
-    print()
-    # Compute the transformation H
-    H, s, V = scipy.linalg.svd(c)
-    print("H:")
-    print(H)
-    print()
-    print("S:")
-    print(s)
-    print()
-    print("V^T:")
-    print(V)
-    print()
-    print("Original conic:")
-    c_ = inv(H)*c*inv(H).transpose()
-    print(c_)
-    print()
-
-    #S = np.matrix([ [sqrt(s[0])/sqrt(s[2]), 0, 0], [0, sqrt(s[1])/sqrt(s[2]), 0], [0, 0, sqrt(s[2])/sqrt(s[2])] ]) 
-    #print(S)
-    #H = np.matrix(H) * S
-    #print("H:")
-    #print(H)
-    #print()
-    
-
+    # Return the rectified image
     return transform_image(np.array(H), image, invert=False)
 
 # =============================================================================
