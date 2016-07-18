@@ -5,8 +5,9 @@ from matplotlib.widgets import Button
 import sys
 from line_builder import Line_Builder
 from point import Point
-from rectification import remove_projective_distortion
-from rectification import direct_metric_rect
+from point import Point2
+from rectification import remove_projective_distortion_with_ratio
+from rectification import algebric_crossRatio_rect
 from scipy import misc
 import time
 
@@ -14,7 +15,6 @@ import time
 from tkinter import *
 from tkinter.filedialog import askopenfilename
 from PIL import Image, ImageTk
-
 
 class UserInputRatio():
     def __init__(self):
@@ -78,9 +78,10 @@ ax.set_title('Click to build line segments')
 # ==================== CREATE LISTENERS FOR POINT CAPTURE =====================
 # =============================================================================
 
-line_builder = Line_Builder(fig, ax, 2, col_num, row_num)
+line_builder = Line_Builder(fig, ax, 6, col_num, row_num)
 
 # =============================================================================
+
 
 
 fig.canvas.set_window_title('Original Image')
@@ -99,18 +100,19 @@ points = line_builder.get_points()
 lines = line_builder.get_lines()
 #(line1, line2, line3, line4, line5, line6, line7, line8) = line_builder.get_lines()
 
-if len(lines) < 2:
+if len(lines) < 6:
     raise Exception("Not enough input lines")
 
+
 ## Teste Euclidean Distance
-print ("First point X = ", points[0].x)
-print ("First point Y =  ", points[0].y)
-print ("Second point X = ", points[1].x)
-print ("Second point Y = ", points[1].y)
-print ("Euclidean Distance = ", points[0].euclideanDistance(points[1]))
-print ("Euclidean Distance = ", points[0].euclideanDistance(points[0]))
-print ("Euclidean Distance = ", points[1].euclideanDistance(points[1]))
-print ("Euclidean Distance = ", points[1].euclideanDistance(points[0]))
+# print ("First point X = ", points[0].x)
+# print ("First point Y =  ", points[0].y)
+# print ("Second point X = ", points[1].x)
+# print ("Second point Y = ", points[1].y)
+# print ("Euclidean Distance = ", points[0].euclideanDistance(points[1]))
+# print ("Euclidean Distance = ", points[0].euclideanDistance(points[0]))
+# print ("Euclidean Distance = ", points[1].euclideanDistance(points[1]))
+# print ("Euclidean Distance = ", points[1].euclideanDistance(points[0]))
 
 
 # =============================================================================
@@ -127,8 +129,9 @@ c1 = Point(points[1].x,points[1].y+2,points[1].z)
 alinha1 = points[0].euclideanDistance(points[1])
 blinha1 = points[1].euclideanDistance(c1)
 
-H1 = get_H_2_2(a1,b1,c1,alinha1,blinha1)
-print (H1)
+h11,h12,h21,h22 = get_H_2_2(a1,b1,c1,alinha1,blinha1)
+H1 = np.array([[h11,h12], [h21,h22]])
+print(H1)
 
 ###### Second Vanish Point ######
 # a/b = ratio same ratio as the first point
@@ -140,17 +143,88 @@ c2 = Point(points[3].x,points[3].y+2,points[3].z)
 alinha2 = points[2].euclideanDistance(points[3])
 blinha2 = points[3].euclideanDistance(c2)
 
-H2 = get_H_2_2(a2,b2,c2,alinha2,blinha2)
+h11,h12,h21,h22 = get_H_2_2(a2,b2,c2,alinha2,blinha2)
+H2 = np.array([[h11,h12], [h21,h22]])
 print (H2)
 
 
-## Nao sei se eh assim essa parte aqui de baixo
-# Vanish Point one
-PF1 = H1*Point(1,0,0)
+# # Nao sei se eh assim essa parte aqui de baixo
+# # Vanish Point one
+PF1 = Point2(1,0)
+PF1.transform(H1)
+print("PF1: ", PF1)
+PF1.normalize()
+print("PF1: ", PF1)
+# # Vanish Point two
+PF2 = Point2(1,0)
+PF2.transform(H2)
+print("PF2:", PF2)
+PF2.normalize()
 
-# Vanish Point two
-PF2 = H1*Point(1,0,0)
+
+# # Compute the Infinity Line
+# horizon = PF1.cross(PF2)
+# horizon.normalize()
+
+(coordx,coordy) = PF1.to_nparray()
+vetorDif1 = blinha1-alinha1
+vetorDif1 = Point(vetorDif1,1,1)
+vetorDif1.r3Normalize()
+vetorDif1 = vetorDif1*coordx
+PF1 = vetorDif1 + Point(alinha1,1,1)
+print(PF1)
+
+
+(coordx,coordy) = PF2.to_nparray()
+vetorDif2 = blinha2-alinha2
+vetorDif2 = Point(vetorDif2,1,1)
+vetorDif2.r3Normalize()
+vetorDif2 = vetorDif2*coordx
+PF2 = vetorDif2 + Point(alinha2,1,1)
+print(PF2)
 
 # Compute the Infinity Line
 horizon = PF1.cross(PF2)
 horizon.normalize()
+
+
+line_pairs = list()
+i = 2
+while i < len(lines):
+    line_pairs.append( (lines[i], lines[i+1]) )
+    i += 2 
+
+perpendicular_line_pairs = line_pairs[2:]
+
+
+
+#print(perpendicular_line_pairs)
+
+#tic = time.clock()
+algebric_crossRatio_rect(image, horizon, perpendicular_line_pairs)
+
+fig = plt.figure()
+fig.canvas.set_window_title('Rectified Image (Stratified Metric Rectification)')
+fig.canvas.mpl_connect('key_press_event', press)
+plt.imshow(image_)
+plt.show()
+
+# Lembrei
+# Vc vai multiplicar o infinito de P1, que eh (1,0) por H
+# E normalizar
+# Aí vc vai ter a imagem dele normalizada
+# Que eh no formato (x, 1)
+# Então x eh a distância de alinha pra ele
+# Vc pega então o vetor blinha - alinha
+# Normaliza ele pra ter comprimento 1
+# (normalização de vetores de R3, não eh a normalização de P2)
+# Multiplica por x e soma ao ponto alinha
+# Aí vc tem o ponto de fuga dessa reta
+# Eh so repetir pra outra
+# Agora já tá aí
+# Eh esse msm o procedimento
+# Outra coisa
+# Tem a forma geométrica tbm ora fazer
+
+
+# =============================================================================

@@ -256,3 +256,38 @@ def direct_metric_rect(image, orthogonal_line_pairs):
     return transform_image(np.array(H), image, invert=False)
 
 # =============================================================================
+
+# =============================================================================
+# ================== ALGEBRIC CROOS RATIO RECTIFICATION =======================
+# =============================================================================
+
+def remove_projective_distortion_with_ratio(image, infinity_line):
+    infinity_line.normalize()
+
+    # Compute the projective transformation H_p, which returns the infinity
+    # line to its correct position, removing projective distortion on the image
+    a = infinity_line.x
+    b = infinity_line.y
+    c = infinity_line.z
+    H_p = np.array([[1, 0, 0], [0, 1, 0], [a, b, c]])
+
+    # Compute the transformed image and return it
+    return transform_image(H_p, image), H_p
+
+def algebric_crossRatio_rect(image, infinity_line, orthogonal_line_pairs):
+    # Remove projective distortions on the image (affine rectification)
+    (image, H_p) = remove_projective_distortion_with_ratio(image, infinity_line)
+
+    # Correct coordinates from the orthogonal lines
+    orthogonal_line_pairs = deepcopy(orthogonal_line_pairs)
+    H_p_line = inv(H_p).transpose()
+    for (l1, l2) in orthogonal_line_pairs:
+        l1.transform(H_p_line)
+        l2.transform(H_p_line)
+
+    # Remove affine distortions on the image (metric rectification)
+    (image, H_a) = remove_affine_distortion(image, orthogonal_line_pairs)
+
+    # TODO: Maybe return the complete transformation as well for some possible 
+    # future use
+    return image

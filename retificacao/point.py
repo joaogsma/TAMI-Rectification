@@ -64,6 +64,13 @@ class Point(object):
         self.y /= self.z
         self.z = 1
 
+    def r3Normalize(self):
+        modulos = math.sqrt(self.x*self.x + self.y*self.y + self.z*self.z)
+        self.x /= modulos
+        self.y /= modulos
+        self.z /= modulos
+
+
     def transform(self, H):
         if len(H) != 3:
             raise Exception("Incorrect matrix size")
@@ -82,3 +89,83 @@ class Point(object):
 
     def to_nparray(self):
         return np.array([self.x, self.y, self.z])
+
+
+
+class Point2(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __add__(self, other):
+        return Point2(self.x + other.x, self.y + other.y)
+
+    def __sub__(self, other):
+        return Point2(self.x - other.x, self.y - other.y)
+
+    def __mul__(self, other):
+        if(type(other) == Point):
+            return (self.x * other.x + self.y * other.y)
+        else:
+            return Point2(self.x * other, self.y * other)
+    
+    def __rmul__(self, other):
+        if(type(other) == Point2):
+            return (self.x * other.x + self.y * other.y)
+        else:
+            return Point2(self.x * other, self.y * other)
+    
+    def __truediv__(self, other):
+        if (type(other) != int and type(other) != float and
+            type(other) != np.int_ and type(other) != np.float_):
+            raise Exception("Undefined Point2 division")
+
+        if other == 0:
+            raise Exception("Division by zero")
+
+        return Point2(self.x / other, self.y / other)
+    
+    def __str__(self):
+        return "(%f, %f)" % (self.x, self.y)
+
+    def euclideanDistance(self,other):
+        diff = self-other
+        return math.sqrt(diff*diff)
+
+    def get_pixel_coord(self, xSize, ySize):
+        self.normalize()
+        x = int(round(self.x + (xSize / 2)))
+        y = int(round((ySize / 2) - self.y))
+
+        return (y, x)
+
+
+    def to_img_coord(self, xSize, ySize):
+        self.x = self.x - (xSize / 2)
+        self.y = (ySize / 2) - self.y
+
+    def normalize(self):
+        self.x /= self.y
+        self.y = 1
+
+    def r2Normalize(self):
+        modulos = math.sqrt(self.x*self.x + self.y*self.y)
+        self.x /= modulos
+        self.y /= modulos
+
+    def transform(self, H):
+        if len(H) != 2:
+            raise Exception("Incorrect matrix size 1 ")
+
+        for line in H:
+            if len(line) != 2: 
+                raise Exception("Incorrect matrix size 2")
+
+        new_point = np.array([ H[0][0]*self.x + H[0][1]*self.y,  
+                               H[1][0]*self.x + H[1][1]*self.y ])
+
+        self.x = new_point[0]
+        self.y = new_point[1]
+
+    def to_nparray(self):
+        return np.array([self.x, self.y])
