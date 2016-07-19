@@ -26,7 +26,7 @@ def transform_image(H, image, invert=True):
     # Compute transformed image
     for col in range(0, col_num):
         for row in range(0, row_num):
-            # Compute the point p in the original image which is mapped to the 
+            # Compute the point p in the original image which is mapped to the
             # (row, col) pixel in the transformed image
             p = Point(col, row, 1)
             p.to_img_coord(col_num, row_num)
@@ -48,7 +48,7 @@ def transform_image(H, image, invert=True):
 
 def is_line_pair_list(list_):
     for pair in list_:
-        if (type(pair) != tuple or type(pair[0]) != Point or 
+        if (type(pair) != tuple or type(pair[0]) != Point or
                 type(pair[1]) != Point):
             return False
 
@@ -65,10 +65,10 @@ def is_line_pair_list(list_):
 def solve_k_matrix_system(orthogonal_line_pairs):
     pair1 = orthogonal_line_pairs[0]
     pair2 = orthogonal_line_pairs[1]
-    
+
     (l, m) = pair1
     (r, s) = pair2
-    
+
     (l1, l2, l3) = [l.x, l.y, l.z]
     (m1, m2, m3) = [m.x, m.y, m.z]
     (r1, r2, r3) = [r.x, r.y, r.z]
@@ -84,7 +84,7 @@ def solve_k_matrix_system(orthogonal_line_pairs):
 
 def remove_projective_distortion(image, parallel_line_pairs):
     # Check input format
-    if (len(parallel_line_pairs) != 2 or 
+    if (len(parallel_line_pairs) != 2 or
             not is_line_pair_list(parallel_line_pairs)):
         raise Exception("Incorrect set of parallel line pairs")
 
@@ -112,7 +112,7 @@ def remove_projective_distortion(image, parallel_line_pairs):
 
 def remove_affine_distortion(image, orthogonal_line_pairs):
     # Check input format
-    if (len(orthogonal_line_pairs) != 2 or 
+    if (len(orthogonal_line_pairs) != 2 or
             not is_line_pair_list(orthogonal_line_pairs)):
         raise Exception("Incorrect set of orthogonal line pairs")
 
@@ -121,14 +121,14 @@ def remove_affine_distortion(image, orthogonal_line_pairs):
         l1.normalize()
         l2.normalize()
 
-    # Compute the elements which specify the conic dual to the circular points 
+    # Compute the elements which specify the conic dual to the circular points
     (b, c) = solve_k_matrix_system(orthogonal_line_pairs)
     #print(c)
     #print(b)
     a = sqrt(c - b*b)
 
-    # Compute the matrix H_a_inv. This is the transformation that caused the 
-    # affine distortion of the matrix, as opposed to its inverse (H_a, not 
+    # Compute the matrix H_a_inv. This is the transformation that caused the
+    # affine distortion of the matrix, as opposed to its inverse (H_a, not
     # computed), which which would remove the distortion.
     H_a_inv = np.array([[a, b, 1], [0, 1, 0], [0, 0, 1]])
 
@@ -138,7 +138,7 @@ def remove_affine_distortion(image, orthogonal_line_pairs):
     return transform_image(H_a_inv, image, invert=False), inv(H_a_inv)
 
 
-def stratified_metric_rect(image, parallel_line_pairs, 
+def stratified_metric_rect(image, parallel_line_pairs,
                            orthogonal_line_pairs):
     # Remove projective distortions on the image (affine rectification)
     (image, H_p) = remove_projective_distortion(image, parallel_line_pairs)
@@ -153,10 +153,10 @@ def stratified_metric_rect(image, parallel_line_pairs,
     # Remove affine distortions on the image (metric rectification)
     (image, H_a) = remove_affine_distortion(image, orthogonal_line_pairs)
 
-    # TODO: Maybe return the complete transformation as well for some possible 
+    # TODO: Maybe return the complete transformation as well for some possible
     # future use
     return image
-  
+
 # =============================================================================
 
 
@@ -173,22 +173,22 @@ def null_space(A, eps=1e-15):
    null_space = scipy.compress(null_mask, vh, axis=0)
    return scipy.transpose(null_space)
 
-# Create the constraint on the conic dual of the circular points that 
+# Create the constraint on the conic dual of the circular points that
 # corresponds to the two lines l and m
 def create_equation(l, m):
     (l1, l2, l3) = [l.x, l.y, l.z]
     (m1, m2, m3) = [m.x, m.y, m.z]
 
-    return [l1*m1, (l1*m2 + l2*m1)/2, l2*m2, (l1*m3 + l3*m1)/2, 
+    return [l1*m1, (l1*m2 + l2*m1)/2, l2*m2, (l1*m3 + l3*m1)/2,
             (l2*m3 + l3*m2)/2, l3*m3]
 
-# Create the 6x6 matrix corresponding to the system of equations needed to find 
-# the image of the conic dual of the circular points. The first 5 rows 
+# Create the 6x6 matrix corresponding to the system of equations needed to find
+# the image of the conic dual of the circular points. The first 5 rows
 # correspond to the constraints derived from the orthogonal lines, and the 6th
 # row is the length 6 zero vector, so that the matrix is square
 def create_matrix(orthogonal_line_pairs):
     # Check input format
-    if (len(orthogonal_line_pairs) != 5 or 
+    if (len(orthogonal_line_pairs) != 5 or
             not is_line_pair_list(orthogonal_line_pairs)):
         raise Exception("Incorrect number of orthogonal line pairs")
 
@@ -201,11 +201,11 @@ def create_matrix(orthogonal_line_pairs):
 
     return np.matrix(equations)
 
-# Compute the projective transformation which occurred on the conic dual of the 
+# Compute the projective transformation which occurred on the conic dual of the
 # circular points. The input C corresponds to its distorted image
 def compute_transformation(C):
     matrix = C.getA()
-    
+
     c = matrix[0][0]
     b = matrix[0][1]
     d = matrix[1][1]
@@ -215,25 +215,25 @@ def compute_transformation(C):
 
     v1 = (val1 - b*val2) / (c - b*b)
     v2 = val2 - b*v1
-    
-    # H_p is the projective part of the transformation, similar to the H_p in 
+
+    # H_p is the projective part of the transformation, similar to the H_p in
     # the stratified metric rectification
     H_p = np.matrix([[1, 0, 0], [0, 1, 0], [v1, v2, 1]])
-    # H_a is the affine part of the transformation, similar to the H_a in the 
+    # H_a is the affine part of the transformation, similar to the H_a in the
     # stratified metric transformation
     H_a = np.matrix([[a, b, 0], [0, 1, 0], [0, 0, 1]])
     # The complete transformation (up to a similarity) is H_p*H_a
     H = H_p*H_a
-    
+
     return H
 
-# 
+#
 def direct_metric_rect(image, orthogonal_line_pairs):
     # Compute the system of equations needed to identify C^*_inf. This is a 6x6
     # matrix, with the last row being the zero vector
     matrix = create_matrix(orthogonal_line_pairs)
 
-    # Compute the conic C, as a 6 vector (a, b, c, d, e, f) which is the null 
+    # Compute the conic C, as a 6 vector (a, b, c, d, e, f) which is the null
     # space of the system of equations
     C = np.array(null_space(matrix))
 
@@ -242,11 +242,11 @@ def direct_metric_rect(image, orthogonal_line_pairs):
     C = np.matrix([[a, b/2, d/2], [b/2, c, e/2], [d/2, e/2, f]])
     # Normalize the KK^T elements in C to the format [[c, b], [b, 1]]
     C *= 1/c
-    
+
     H = []
     try:
-        # Compute the projective transformation that occurred on C^*_inf. This 
-        # is not the rectifying transformation, but the one corresponding to 
+        # Compute the projective transformation that occurred on C^*_inf. This
+        # is not the rectifying transformation, but the one corresponding to
         # the distortion
         H = compute_transformation(C)
     except ValueError:
@@ -274,7 +274,7 @@ def remove_projective_distortion_with_ratio(image, infinity_line):
     # Compute the transformed image and return it
     return transform_image(H_p, image), H_p
 
-def algebric_crossRatio_rect(image, infinity_line, orthogonal_line_pairs):
+def crossRatio_rect(image, infinity_line, orthogonal_line_pairs):
     # Remove projective distortions on the image (affine rectification)
     (image, H_p) = remove_projective_distortion_with_ratio(image, infinity_line)
 
@@ -288,6 +288,6 @@ def algebric_crossRatio_rect(image, infinity_line, orthogonal_line_pairs):
     # Remove affine distortions on the image (metric rectification)
     (image, H_a) = remove_affine_distortion(image, orthogonal_line_pairs)
 
-    # TODO: Maybe return the complete transformation as well for some possible 
+    # TODO: Maybe return the complete transformation as well for some possible
     # future use
     return image

@@ -6,7 +6,7 @@ import sys
 from line_builder import Line_Builder
 from point import Point
 from rectification import remove_projective_distortion
-from rectification import stratified_metric_rect
+from rectification import crossRatio_rect
 from scipy import misc
 import time
 
@@ -17,8 +17,59 @@ from PIL import Image, ImageTk
 
 
 #def openImage():
+'''
+def calcPFbyCrossRatio(A, B, C):
 
+    [xA, yA, zA] = A.to_nparray()
+    [xB, yB, zB] = B.to_nparray()
+    [xC, yC, zC] = C.to_nparray()
 
+    AB = A.cross(B)
+    BC = B.cross(C)
+
+    AB.normalize()
+    BC.normalize()
+
+    [xAB, yAB, zAB] = AB.to_nparray()
+    [xBC, yBC, zBC] = BC.to_nparray()
+
+    alpha = xAB*yC - yAB*xC - xBC*yA + yBC*xA
+    beta  = zAB*xC - xAB*zC - zBC*xA + xBC*zA
+    gamma = yAB*zC - zAB*yC - yBC*zA + zBC*yA
+
+    yF = (-xAB*alpha + zAB*gamma)/(xAB*beta - yAB*alpha)
+    xF = -(yAB*yF + zAB)/xAB
+
+    F = Point(-xF, -yF, 1)
+
+    return F
+'''
+
+def calcPFbyCrossRatio(A_, B_, C_, a, b):
+    A = A_
+    B = A + Point(a,0,0)
+    C = B + Point(b,0,0)
+
+    BB_ = B.cross(B_)
+    BB_.normalize()
+    CC_ = C.cross(C_)
+    CC_.normalize()
+    O = BB_.cross(CC_)
+    O.normalize()
+    [xO, yO, zO] = O.to_nparray()
+
+    l = A.cross(C)
+    l.normalize()
+    [xl, yl, zl] = l.to_nparray()
+    zl_ = -(xl*xO + yl*yO)/zO
+    l_ = Point(xl, yl, zl_)
+    l_.normalize()
+    A_C_ = A_.cross(C_)
+    A_C_.normalize()
+    PF = A_C_.cross(l_)
+    PF.normalize()
+
+    return PF
 
 ## Close window and change progress in code
 def press(event):
@@ -74,9 +125,22 @@ lines = line_builder.get_lines()
 if len(lines) < 8:
     raise Exception("Not enough input lines")
 
+#points
+
+A1 = points[0]
+B1 = points[1]
+C1 = points[3]
+
+A2 = points[4]
+B2 = points[5]
+C2 = points[7]
+
+PF1 = calcPFbyCrossRatio(A1, B1, C1, 1, 1)
+PF2 = calcPFbyCrossRatio(A2, B2, C2, 1, 1)
+
 # Compute points in the Infinity Line
-PF1 = lines[0].cross(lines[1])
-PF2 = lines[2].cross(lines[3])
+#PF1 = lines[0].cross(lines[1])
+#PF2 = lines[2].cross(lines[3])
 
 # Compute the Infinity Line
 horizon = PF1.cross(PF2)
@@ -153,8 +217,9 @@ parallel_line_pairs = line_pairs[:2]
 perpendicular_line_pairs = line_pairs[2:]
 
 #tic = time.clock()
-image_ = stratified_metric_rect(image, parallel_line_pairs,
-                            perpendicular_line_pairs)
+image_ = crossRatio_rect(image, horizon, perpendicular_line_pairs)
+#stratified_metric_rect(image, parallel_line_pairs,
+#                            perpendicular_line_pairs)
 #toc = time.clock()
 #print(toc - tic)
 
