@@ -114,7 +114,7 @@ class Line_Builder:
 
         line = self.lines[int(self.countLines/2)]
 
-        if (self.crossRatio and (self.countLines == 3) or (self.countLines == 7)):
+        if (self.crossRatio and ((self.countLines == 3) or (self.countLines == 7))):
             xs = self.x_list[len(self.x_list) - 4 + (len(self.x_list) % 4):]
             ys = self.y_list[len(self.x_list) - 4 + (len(self.x_list) % 4):]
         else:
