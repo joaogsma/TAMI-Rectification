@@ -7,7 +7,7 @@ from line_builder import Line_Builder
 from point import Point
 from point import Point2
 from rectification import remove_projective_distortion_with_ratio
-from rectification import algebric_crossRatio_rect
+from rectification import crossRatio_rect
 from scipy import misc
 import time
 
@@ -15,6 +15,8 @@ import time
 from tkinter import *
 from tkinter.filedialog import askopenfilename
 from PIL import Image, ImageTk
+
+import math
 
 class UserInputRatio():
     def __init__(self):
@@ -40,21 +42,40 @@ def press(event):
         plt.close()
 
 
-## Calculate vanish points
-def get_H_2_2(a,b,c,alinha,blinha):
-	h12 = 0
-	h22 = 1
-	h21 = ((b*alinha)-(a*blinha))/(alinha*b*(alinha+blinha))
-	h11 = (a/alinha) + (a*h21)
-	return h11,h12,h21,h22
+def calcAlgebricPFbyCrossRatio(A_, B_, C_, a, b):
+    A_distance = A_.euclideanDistance(B_)
+    B_distance = B_.euclideanDistance(C_) 
 
-# =============================================================================
-# ========================== GET INPUT RATIO A:B ==============================
-# =============================================================================
+  #  h12 = 0
+  #  h22 = 1
+  #  h21 = ((b*A_distance)-(a*B_distance))/(A_distance*b*(A_distance+B_distance))
+  #  h11 = (a/A_distance) + (a*h21)
+   
 
-ratio = UserInputRatio().TempVar
-ratio = float(ratio)
+    h12 = 0
+    h22 = A_.y
+    h11 = A_distance/a  
+    h21 = (A_distance/(a*(A_distance+B_distance))) - (1/(a+b))
 
+    H = np.array([[h11,h12], [h21,h22]])
+
+    PF = Point2(1,0)
+    PF.transform(H)
+    PF.normalize()
+
+    (x,y) = PF.to_nparray()
+  #  print("X: ", x)
+  #  print("Y: ", y)
+ 
+    vetorDif1 = (B_-A_)
+   # print("VetorDif: ",vetorDif1)
+    vetorDif1.r3Normalize()
+    vetorDif1 = vetorDif1*x
+   # print("Vetor dif & x: ", vetorDif1)
+    PF = vetorDif1 + A_
+    PF.normalize()
+   # print("PF: ",PF)
+    return PF
 
 # =============================================================================
 # ============================== LOAD THE IMAGE ===============================
@@ -74,14 +95,15 @@ ax.set_title('Click to build line segments')
 
 # =============================================================================
 
+
+
 # =============================================================================
 # ==================== CREATE LISTENERS FOR POINT CAPTURE =====================
 # =============================================================================
 
-line_builder = Line_Builder(fig, ax, 6, col_num, row_num)
+line_builder = Line_Builder(fig, ax, 8, col_num, row_num, crossRatio=True)
 
 # =============================================================================
-
 
 
 fig.canvas.set_window_title('Original Image')
@@ -100,108 +122,103 @@ points = line_builder.get_points()
 lines = line_builder.get_lines()
 #(line1, line2, line3, line4, line5, line6, line7, line8) = line_builder.get_lines()
 
-if len(lines) < 6:
+if len(lines) < 8:
     raise Exception("Not enough input lines")
 
+A1 = points[0]
+B1 = points[1]
+C1 = points[3]
 
-## Teste Euclidean Distance
-# print ("First point X = ", points[0].x)
-# print ("First point Y =  ", points[0].y)
-# print ("Second point X = ", points[1].x)
-# print ("Second point Y = ", points[1].y)
-# print ("Euclidean Distance = ", points[0].euclideanDistance(points[1]))
-# print ("Euclidean Distance = ", points[0].euclideanDistance(points[0]))
-# print ("Euclidean Distance = ", points[1].euclideanDistance(points[1]))
-# print ("Euclidean Distance = ", points[1].euclideanDistance(points[0]))
+A2 = points[4]
+B2 = points[5]
+C2 = points[7]
 
+PF1 = calcAlgebricPFbyCrossRatio(A1, B1, C1, 1, 1)
+PF2 = calcAlgebricPFbyCrossRatio(A2, B2, C2, 1, 1)
 
-# =============================================================================
-# ======================== COMPUTE TWO VANISH POINT ===========================
-# =============================================================================
-
-###### First Vanish Point ######
-# a/b = ratio    
-a1 = ratio
-b1 = 1
-
-## Need to get input from c by user
-c1 = Point(points[1].x,points[1].y+2,points[1].z)
-alinha1 = points[0].euclideanDistance(points[1])
-blinha1 = points[1].euclideanDistance(c1)
-
-h11,h12,h21,h22 = get_H_2_2(a1,b1,c1,alinha1,blinha1)
-H1 = np.array([[h11,h12], [h21,h22]])
-print(H1)
-
-###### Second Vanish Point ######
-# a/b = ratio same ratio as the first point
-a2 = ratio
-b2 = 1
-
-## Need to get input from c by user
-c2 = Point(points[3].x,points[3].y+2,points[3].z)
-alinha2 = points[2].euclideanDistance(points[3])
-blinha2 = points[3].euclideanDistance(c2)
-
-h11,h12,h21,h22 = get_H_2_2(a2,b2,c2,alinha2,blinha2)
-H2 = np.array([[h11,h12], [h21,h22]])
-print (H2)
-
-
-# # Nao sei se eh assim essa parte aqui de baixo
-# # Vanish Point one
-PF1 = Point2(1,0)
-PF1.transform(H1)
-print("PF1: ", PF1)
-PF1.normalize()
-print("PF1: ", PF1)
-# # Vanish Point two
-PF2 = Point2(1,0)
-PF2.transform(H2)
-print("PF2:", PF2)
-PF2.normalize()
-
-
-# # Compute the Infinity Line
-# horizon = PF1.cross(PF2)
-# horizon.normalize()
-
-(coordx,coordy) = PF1.to_nparray()
-vetorDif1 = blinha1-alinha1
-vetorDif1 = Point(vetorDif1,1,1)
-vetorDif1.r3Normalize()
-vetorDif1 = vetorDif1*coordx
-PF1 = vetorDif1 + Point(alinha1,1,1)
-print(PF1)
-
-
-(coordx,coordy) = PF2.to_nparray()
-vetorDif2 = blinha2-alinha2
-vetorDif2 = Point(vetorDif2,1,1)
-vetorDif2.r3Normalize()
-vetorDif2 = vetorDif2*coordx
-PF2 = vetorDif2 + Point(alinha2,1,1)
-print(PF2)
 
 # Compute the Infinity Line
 horizon = PF1.cross(PF2)
 horizon.normalize()
 
+# =============================================================================
+
+
+
+# =============================================================================
+# ============================= UPDATE THE IMAGE ==============================
+# =============================================================================
+
+p1_px = points[0].get_pixel_coord(col_num, row_num)
+p2_px = points[1].get_pixel_coord(col_num, row_num)
+p3_px = points[2].get_pixel_coord(col_num, row_num)
+p4_px = points[3].get_pixel_coord(col_num, row_num)
+p5_px = points[4].get_pixel_coord(col_num, row_num)
+p6_px = points[5].get_pixel_coord(col_num, row_num)
+p7_px = points[6].get_pixel_coord(col_num, row_num)
+p8_px = points[7].get_pixel_coord(col_num, row_num)
+
+pf1_px = PF1.get_pixel_coord(col_num, row_num)
+pf2_px = PF2.get_pixel_coord(col_num, row_num)
+
+fig = plt.figure()
+ax = fig.add_subplot(111)
+
+ax.scatter(p1_px[1] , p1_px[0], c='r')
+ax.scatter(p2_px[1] , p2_px[0], c='r')
+ax.plot( [p1_px[1], p2_px[1]], [p1_px[0], p2_px[0]], color="r", linewidth=2.0)
+ax.scatter(p3_px[1] , p3_px[0], c='r')
+ax.scatter(p4_px[1] , p4_px[0], c='r')
+ax.plot( [p3_px[1], p4_px[1]], [p3_px[0], p4_px[0]], color="r", linewidth=2.0)
+
+ax.plot( [p2_px[1], pf1_px[1]], [p2_px[0], pf1_px[0]], "r--", linewidth=2.0)
+ax.plot( [p4_px[1], pf1_px[1]], [p4_px[0], pf1_px[0]], "r--", linewidth=2.0)
+
+ax.scatter(p5_px[1] , p5_px[0], c='g')
+ax.scatter(p6_px[1] , p6_px[0], c='g')
+ax.plot( [p5_px[1], p6_px[1]], [p5_px[0], p6_px[0]], color="g", linewidth=2.0)
+ax.scatter(p7_px[1] , p7_px[0], c='g')
+ax.scatter(p8_px[1] , p8_px[0], c='g')
+ax.plot( [p7_px[1], p8_px[1]], [p7_px[0], p8_px[0]], color="g", linewidth=2.0)
+
+ax.plot( [p6_px[1], pf2_px[1]], [p6_px[0], pf2_px[0]], "g--", linewidth=2.0)
+ax.plot( [p8_px[1], pf2_px[1]], [p8_px[0], pf2_px[0]], "g--", linewidth=2.0)
+
+
+# Draw the horizon (Infinity Line)
+ax.scatter(pf1_px[1] , pf1_px[0], c='b')
+ax.scatter(pf2_px[1] , pf2_px[0], c='b')
+ax.plot( [pf1_px[1], pf2_px[1]], [pf1_px[0], pf2_px[0]], color="b")
+
+fig.canvas.set_window_title('Original Image with Infinity Line')
+fig.canvas.mpl_connect('key_press_event', press)
+plt.imshow(image)
+plt.show()
+
+# =============================================================================
+
+
+# =============================================================================
+# ===================== STRATIFIED METRIC RECTIFICATION =======================
+# =============================================================================
 
 line_pairs = list()
-i = 2
+i = 0
 while i < len(lines):
     line_pairs.append( (lines[i], lines[i+1]) )
-    i += 2 
+    i += 2
 
+parallel_line_pairs = line_pairs[:2]
 perpendicular_line_pairs = line_pairs[2:]
 
-
-
-#print(perpendicular_line_pairs)
-
 #tic = time.clock()
-algebric_crossRatio_rect(image, horizon, perpendicular_line_pairs)
+image_ = crossRatio_rect(image, horizon, perpendicular_line_pairs)
+#stratified_metric_rect(image, parallel_line_pairs,
+#                            perpendicular_line_pairs)
+#toc = time.clock()
+#print(toc - tic)
+
+# =============================================================================
 
 fig = plt.figure()
 fig.canvas.set_window_title('Rectified Image (Stratified Metric Rectification)')
@@ -209,22 +226,3 @@ fig.canvas.mpl_connect('key_press_event', press)
 plt.imshow(image_)
 plt.show()
 
-# Lembrei
-# Vc vai multiplicar o infinito de P1, que eh (1,0) por H
-# E normalizar
-# Aí vc vai ter a imagem dele normalizada
-# Que eh no formato (x, 1)
-# Então x eh a distância de alinha pra ele
-# Vc pega então o vetor blinha - alinha
-# Normaliza ele pra ter comprimento 1
-# (normalização de vetores de R3, não eh a normalização de P2)
-# Multiplica por x e soma ao ponto alinha
-# Aí vc tem o ponto de fuga dessa reta
-# Eh so repetir pra outra
-# Agora já tá aí
-# Eh esse msm o procedimento
-# Outra coisa
-# Tem a forma geométrica tbm ora fazer
-
-
-# =============================================================================

@@ -65,8 +65,8 @@ class Line_Builder:
         y0 = P0.y
         xf = PF.x
         yf = PF.y
-        print("P0 = ", P0)
-        print("PF = ", PF)
+      #  print("P0 = ", P0)
+     #   print("PF = ", PF)
         a = (yf - y0)/(xf - x0)
         b = y0 - a*x0
         y = a*x + b
@@ -96,9 +96,9 @@ class Line_Builder:
             self.y_list.append(y_)
             self.countPoints += 2
             self.countLines += 1
-            print("countPoints = ", self.countPoints)
+            #print("countPoints = ", self.countPoints)
         elif (self.crossRatio and ((self.countPoints == 3) or (self.countPoints == 7))):
-            print("AQUI")
+           # print("AQUI")
             i = len(self.x_list) - 1
             PF = Point(self.x_list[i], self.y_list[i], 1)
             P0 = Point(self.x_list[i-2], self.y_list[i-2], 1)
