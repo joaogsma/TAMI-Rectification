@@ -15,35 +15,7 @@ from tkinter import *
 from tkinter.filedialog import askopenfilename
 from PIL import Image, ImageTk
 
-
-#def openImage():
-'''
-def calcPFbyCrossRatio(A, B, C):
-
-    [xA, yA, zA] = A.to_nparray()
-    [xB, yB, zB] = B.to_nparray()
-    [xC, yC, zC] = C.to_nparray()
-
-    AB = A.cross(B)
-    BC = B.cross(C)
-
-    AB.normalize()
-    BC.normalize()
-
-    [xAB, yAB, zAB] = AB.to_nparray()
-    [xBC, yBC, zBC] = BC.to_nparray()
-
-    alpha = xAB*yC - yAB*xC - xBC*yA + yBC*xA
-    beta  = zAB*xC - xAB*zC - zBC*xA + xBC*zA
-    gamma = yAB*zC - zAB*yC - yBC*zA + zBC*yA
-
-    yF = (-xAB*alpha + zAB*gamma)/(xAB*beta - yAB*alpha)
-    xF = -(yAB*yF + zAB)/xAB
-
-    F = Point(-xF, -yF, 1)
-
-    return F
-'''
+from userInputRatio import UserInputRatio
 
 def calcPFbyCrossRatio(A_, B_, C_, a, b):
     A = A_
@@ -135,8 +107,13 @@ A2 = points[4]
 B2 = points[5]
 C2 = points[7]
 
-PF1 = calcPFbyCrossRatio(A1, B1, C1, 1, 1)
-PF2 = calcPFbyCrossRatio(A2, B2, C2, 1, 1)
+a1 = float(UserInputRatio("a1").TempVar)
+b1 = float(UserInputRatio("b1").TempVar)
+a2 = float(UserInputRatio("a2").TempVar)
+b2 = float(UserInputRatio("b2").TempVar)
+
+PF1 = calcPFbyCrossRatio(A1, B1, C1, a1, b1)
+PF2 = calcPFbyCrossRatio(A2, B2, C2, a2, b2)
 
 # Compute points in the Infinity Line
 #PF1 = lines[0].cross(lines[1])

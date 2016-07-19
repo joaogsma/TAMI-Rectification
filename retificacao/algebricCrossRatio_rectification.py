@@ -16,24 +16,9 @@ from tkinter import *
 from tkinter.filedialog import askopenfilename
 from PIL import Image, ImageTk
 
+from userInputRatio import UserInputRatio
+
 import math
-
-class UserInputRatio():
-    def __init__(self):
-        self.Master=Tk()
-        self.Entry=Entry(self.Master)
-        self.Master.wm_title("Ratio a:b")
-        self.Entry.pack()
-
-        self.Button=Button(self.Master,text="Ok",command=self.Return)
-        self.Button.pack()            
-
-        self.Master.mainloop()
-    
-    def Return(self):
-        self.TempVar=self.Entry.get() 
-        self.Entry.quit()
-
 
 ## Close window and change progress in code
 def press(event):
@@ -133,8 +118,13 @@ A2 = points[4]
 B2 = points[5]
 C2 = points[7]
 
-PF1 = calcAlgebricPFbyCrossRatio(A1, B1, C1, 1, 1)
-PF2 = calcAlgebricPFbyCrossRatio(A2, B2, C2, 1, 1)
+a1 = float(UserInputRatio("a1").TempVar)
+b1 = float(UserInputRatio("b1").TempVar)
+a2 = float(UserInputRatio("a2").TempVar)
+b2 = float(UserInputRatio("b2").TempVar)
+
+PF1 = calcAlgebricPFbyCrossRatio(A1, B1, C1, a1, b1)
+PF2 = calcAlgebricPFbyCrossRatio(A2, B2, C2, a2, b2)
 
 
 # Compute the Infinity Line

@@ -54,18 +54,29 @@ class Application(Frame):
         w.pack(side="left",pady = 10)
 
         w = Label(root, text="Heitor Rapela Medeiros")
+        w["fg"]   = "blue"
+        w.pack(side="left",pady = 10)
+
+        w = Label(root, text="  | ")
+        #w["fg"]   = "blue"
         w.pack(side="left",pady = 10)
 
         w = Label(root, text=" ")
         w.pack(side="left",pady = 10)
 
-        w = Label(root, text="João Gabriel")
+        w = Label(root, text="João Gabriel Abreu")
+        w["fg"]   = "blue"
+        w.pack(side="left",pady = 10)
+
+        w = Label(root, text="  | ")
+        #w["fg"]   = "blue"
         w.pack(side="left",pady = 10)
 
         w = Label(root, text=" ")
         w.pack(side="left",pady = 10)
 
-        w = Label(root, text="Luiz Gustavo Charamba")
+        w = Label(root, text="Luiz Gustavo da Rocha Charamba")
+        w["fg"]   = "blue"
         w.pack(side="left",pady = 10)
 
     def __init__(self, master=None):
