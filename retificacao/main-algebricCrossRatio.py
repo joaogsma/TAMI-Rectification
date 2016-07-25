@@ -7,30 +7,13 @@ from line_builder import Line_Builder
 from point import Point
 from point import Point2
 from rectification import remove_projective_distortion_with_ratio
-from rectification import algebric_crossRatio_rect
+from rectification import crossRatio_rect
 from scipy import misc
+from userInputRatio import UserInputRatio
 import time
 
-# For image aquisition
-from tkinter import *
 from tkinter.filedialog import askopenfilename
 from PIL import Image, ImageTk
-
-class UserInputRatio():
-    def __init__(self):
-        self.Master=Tk()
-        self.Entry=Entry(self.Master)
-        self.Master.wm_title("Ratio a:b")
-        self.Entry.pack()
-
-        self.Button=Button(self.Master,text="Ok",command=self.Return)
-        self.Button.pack()            
-
-        self.Master.mainloop()
-    
-    def Return(self):
-        self.TempVar=self.Entry.get() 
-        self.Entry.quit()
 
 
 ## Close window and change progress in code
@@ -52,9 +35,11 @@ def get_H_2_2(a,b,c,alinha,blinha):
 # ========================== GET INPUT RATIO A:B ==============================
 # =============================================================================
 
-ratio = UserInputRatio().TempVar
-ratio = float(ratio)
+a = UserInputRatio("a").TempVar
+a = float(a)
 
+b = UserInputRatio("b").TempVar
+b = float(b)
 
 # =============================================================================
 # ============================== LOAD THE IMAGE ===============================
@@ -120,7 +105,7 @@ if len(lines) < 6:
 # =============================================================================
 
 ###### First Vanish Point ######
-# a/b = ratio    
+# a/b = ratio
 a1 = ratio
 b1 = 1
 
@@ -192,7 +177,7 @@ line_pairs = list()
 i = 2
 while i < len(lines):
     line_pairs.append( (lines[i], lines[i+1]) )
-    i += 2 
+    i += 2
 
 perpendicular_line_pairs = line_pairs[2:]
 

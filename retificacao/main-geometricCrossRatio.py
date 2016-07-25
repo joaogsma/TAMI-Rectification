@@ -14,7 +14,7 @@ import time
 from tkinter import *
 from tkinter.filedialog import askopenfilename
 from PIL import Image, ImageTk
-
+from userInputRatio import UserInputRatio
 
 #def openImage():
 '''
@@ -135,8 +135,21 @@ A2 = points[4]
 B2 = points[5]
 C2 = points[7]
 
-PF1 = calcPFbyCrossRatio(A1, B1, C1, 1, 1)
-PF2 = calcPFbyCrossRatio(A2, B2, C2, 1, 1)
+a1 = UserInputRatio("a1").TempVar
+a1 = float(a1)
+
+b1 = UserInputRatio("b1").TempVar
+b1 = float(b1)
+
+a2 = UserInputRatio("a2").TempVar
+a2 = float(a2)
+
+b2 = UserInputRatio("b2").TempVar
+b2 = float(b2)
+
+
+PF1 = calcPFbyCrossRatio(A1, B1, C1, a1, b1)
+PF2 = calcPFbyCrossRatio(A2, B2, C2, a2, b2)
 
 # Compute points in the Infinity Line
 #PF1 = lines[0].cross(lines[1])
